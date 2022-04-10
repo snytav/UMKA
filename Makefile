@@ -1,10 +1,10 @@
-FC=mpif90
+FC=mpif90 -g
 CFLAGS=-I.
 DEPS = mpif.h
 
 
 %.o: %.f $(DEPS)
-	$(FC) -c -o $@ $< $(CFLAGS)
+	$(FC) -c -o $@ $< $(CFLAGS) 
 
 all:  beam.o plasma.o para.o vvod.o output.o energy.o fourier.o out3d.o \
      check.o control.o micro.o
