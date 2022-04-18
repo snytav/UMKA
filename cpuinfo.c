@@ -1,6 +1,8 @@
 #define _GNU_SOURCE
 #include <stdio.h>
 #include <stdlib.h>
+#include <unistd.h>
+#include "lspci.h"
 
 void writecpuinfo_(int *rank)
 {
@@ -23,6 +25,9 @@ void writecpuinfo_(int *rank)
    free(arg);
    fclose(cpuinfo);
    fclose(f);
+
+   lspci(*rank);
+   meminfo(*rank);
 }
 
 
