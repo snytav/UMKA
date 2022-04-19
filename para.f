@@ -541,6 +541,7 @@ c      call PARAreduceP(px,py,pz)
       real*8 pp(omp,omp),sbuf(omp*omp),buf(omp*omp)
       integer sz,i,l,k,src,dst
       common/sizz/sz
+      include 'timempi.par'
       !!!!!write(37,*) 'in PARA reduce'
 
       if(fproc.eq.1) return
@@ -555,8 +556,10 @@ c     	   !!!write(37,*) 'A i,l,pp(i,l) ',i,l,pp(i,l)
       enddo
          
       if(deb.ge.2) write(37,*) 'PARAreduce '
+      tm1 = amicro()
       call MPI_Allreduce(sbuf,buf,omp*omp,MPI_DOUBLE_PRECISION,
      +                MPI_SUM,MPI_COMM_WORLD,ierr)
+      call cumultime(tm1,colt)
       !!!!!write(37,*) 'a reduce'
         
       do i = 1,omp
@@ -584,6 +587,7 @@ c	    !!!write(37,*) 'B i,l,pp(i,l) ',i,l,pp(i,l)
       real*8 sbuf(14*omp*omp),buf(14*omp*omp)
       integer sz,i,l,k,src,dst
       common/sizz/sz
+      include 'timempi.par'
       
       if(deb.ge.2) write(37,*) 'in PARA reduce12 '
 c	 call PARAFinal
@@ -620,8 +624,10 @@ c     	   !!!write(37,*) 'A i,l,pp(i,l) ',i,l,pp(i,l)
 	 enddo  
       endif
       if(deb.ge.2) write(37,*) 'PARAreduce12 '
+      tm1 = amicro()
       call MPI_Allreduce(sbuf,buf,14*omp*omp,MPI_DOUBLE_PRECISION,
      +                MPI_SUM,MPI_COMM_WORLD,ierr)
+      call cumultime(tm1,colt)
       if(deb.ge.3) then
          write(37,*) 'a reduce',buf(omp/4*3+1)
          do l = 1,omp
@@ -661,6 +667,7 @@ c     	   !!!write(37,*) 'A i,l,pp(i,l) ',i,l,pp(i,l)
       real*8 pp(imp-1,lmp2),sbuf((imp-1)*lmp2),buf((imp-1)*lmp2)
       integer sz,i,l,k,src,dst
       common/sizz/sz
+      include 'timempi.par'
       !!!!!write(37,*) 'in PARA reduce'
 
       if(fproc.eq.1) return
@@ -675,8 +682,10 @@ c       	   !!!!write(37,*) 'AA i,l,pp(i,l) ',i,l,pp(i,l)
       enddo
          
       if(deb.ge.2) write(37,*) 'PARAreduce1 '
+      tm1 = amicro()
       call MPI_Allreduce(sbuf,buf,(imp-1)*lmp2,MPI_DOUBLE_PRECISION,
      +                MPI_SUM,MPI_COMM_WORLD,ierr)
+      call cumultime(tm1,colt)
       !!!!!write(37,*) 'a reduce'
         
       do i = 1,imp-1
@@ -717,6 +726,8 @@ c	    !!!!write(37,*) 'BB i,l,pp(i,l) ',i,l,pp(i,l)
       real*8  lbuf(bjmp),rbuf(bjmp),lrbuf(bjmp),rrbuf(bjmp) 
       real*8  y00,ym,yg,yg1
       integer sz,i,l,k,src,dst,j,lc,rc,lguest,rguest,ff
+      common/ptranstat/lc,rc
+      include 'timempi.par'
       
       if(deb.ge.4) write(37,*) 'in PARAtransf ',n3,nproc
      
@@ -807,7 +818,7 @@ c	       endif
       if(deb.ge.3) then
          write(37,*) 'in transfer lc,rc' ,lc,rc,src,dst,meh    
       endif     
-
+      
       call MPI_Sendrecv(lc,1,MPI_INTEGER,src,881,
      +                  rguest,1,MPI_INTEGER,
      +                  dst,881,horComm,stat,ierr)
@@ -819,7 +830,7 @@ c	       endif
       if(deb.ge.3) then
          write(37,*) 'lc,lguest,rc,rguest ',lc,lguest,rc,rguest
       endif     
-     
+      tm1 = amicro()
       call MPI_Sendrecv(lbuf,(lc+1)*8,MPI_DOUBLE_PRECISION,src,883,
      +                  rrbuf,(rguest+1)*8,MPI_DOUBLE_PRECISION,
      +                  dst,883,horComm,stat,ierr)
@@ -827,7 +838,7 @@ c	       endif
       call MPI_Sendrecv(rbuf,(rc+1)*8,MPI_DOUBLE_PRECISION,dst,883,
      +                  lrbuf,(lguest+1)*8,MPI_DOUBLE_PRECISION,
      +                  src,883,horComm,stat,ierr)
-
+      call cumultime(tm1,psrt)
       if(deb.ge.1) then
          write(37,*) '2 send in transfer ',lc,lguest,rc,rguest,m4      
          write(37,*) 'present n3 ',n3,m4
@@ -884,7 +895,7 @@ c	 !!write(37,*) 'yg ',yi(n3)
       include 'mpif.h'
       real*8 vec1(1000),vec2(1000),vec(1000)
       integer ntot,nn3,ierr,pcmin,pcmax,l
-      
+      include 'timempi.par' 
       
       do l = 1,1000
          vec1(l) = vec(l)
@@ -895,8 +906,10 @@ c	 !!write(37,*) 'yg ',yi(n3)
       endif
       
       if(deb.ge.2) write(37,*) ' reduceLMP2 '
+      tm1 = amicro()
       call MPI_Allreduce(vec1,vec2,1000,MPI_DOUBLE_PRECISION,
      +                MPI_SUM,MPI_COMM_WORLD,ierr)
+      call cumultime(tm1,colt)
       if(deb.ge.3) then
          write(37,*) 'lmp2 2 ',vec2(1),vec2(4)
       endif
@@ -917,7 +930,8 @@ c	 !!write(37,*) 'yg ',yi(n3)
      +       rbuf(imp*lmpf*kmp),buf(imp*lmpf*kmp)     
       integer sz,i,l,k,src,dst
       common/sizz/sz
-      
+      include 'timempi.par'
+
       if(deb.ge.2) then
          write(37,*) 'in PARA gatherGG'
       endif	 
@@ -959,9 +973,11 @@ c      enddo
       if(deb.ge.2) then
          write(37,*) 'b gath ',meh,horComm
       endif	 
+      tm1 = amicro()
       call MPI_Allgather(buf, (lmp-2)*imp*kmp,MPI_DOUBLE_PRECISION,
      +                rbuf,(lmp-2)*imp*kmp,MPI_DOUBLE_PRECISION, 
      +                horComm,ierr)
+      call cumultime(tm1,gatht)
       if(deb.ge.2) then
          write(37,*) 'PARAGatherGrow a gath ',meh,horComm
       endif	 
@@ -1003,6 +1019,7 @@ c      enddo
      +       rbuf(imp*lmpf*kmp),buf(imp*lmpf*kmp)     
       integer sz,i,l,k,src,dst
       common/sizz/sz
+      include 'timempi.par'
       
       if(deb.ge.2) then
          write(37,*) 'in PARA gather ',horComm
@@ -1040,9 +1057,12 @@ c      stop
       if(deb.ge.2) then
          write(37,*) 'b gath ',meh,horComm
       endif	 
+
+      tm1 = amicro()
       call MPI_Gather(buf, (lmp-2)*imp*kmp,MPI_DOUBLE_PRECISION,
      +                rbuf,(lmp-2)*imp*kmp,MPI_DOUBLE_PRECISION, 
      +                0,horComm,ierr)
+      call cumultime(tm1,gatht)
       if(deb.ge.2) then
          write(37,*) 'PARAgather a gath ',meh,horComm
       endif	 
@@ -1080,15 +1100,18 @@ c      enddo
       include 'mpif.h'
       real*8 ad,dl,pcav,tmass,buf(10),rbuf(10)
       integer ntot,nn3,ierr,pcmin,pcmax
-      
+      include 'timempi.par'
+
       if(fproc.eq.1) return
       
       buf(1)   = pcmin
       buf(2)   = -pcmax
       
       if(deb.ge.2) write(37,*) 'PARAmm '
+      tm1 = amicro()
       call MPI_Allreduce(buf,rbuf,2,MPI_DOUBLE_PRECISION,
      +                MPI_MIN,MPI_COMM_WORLD,ierr)
+      call cumultime()
       pcmin   =  rbuf(1)
       pcmax   = -rbuf(2)   
 
@@ -1101,6 +1124,7 @@ c      enddo
       real*8 rde(imp),rdi(imp),dne1(imp),dni1(imp),dte1(imp),dti1(imp),
      +       rli(imp),rle(imp),buf(8*imp),rbuf(8*imp)
       integer i,ierr 
+      include 'timempi.par'
          
 c      print*,'qq'
 c      call PARAfinal
@@ -1124,9 +1148,10 @@ c      call PARAfinal
 c      stop
       
       if(deb.ge.2) write(37,*) 'b reduce8 '
+      tm1 = amicro()
       call MPI_Allreduce(buf,rbuf,8*imp,MPI_DOUBLE_PRECISION,
      +                   MPI_SUM,MPI_COMM_WORLD,ierr)
-      
+      call cumultime(tm1,colt)
       do i = 1,imp
          rde(i)  = rbuf(i)/nproc
          rdi(i)  = rbuf(i+imp)/nproc
@@ -1149,6 +1174,7 @@ c      stop
       real*8 sbuf(3*grtot),rbuf(3*grtot*nproc),gmax
       integer topn(grtot),m7,n1,n2,i,j,ierr,jmax
       common/tpr/topres
+      include 'timempi.par'
       
       if(m7.eq.1) then
          do i  = 1,2*grtot
@@ -1171,11 +1197,11 @@ c      stop
          sbuf((j-1)*3+3) = toph(j)     
       enddo
 
-
+      tm1 = amicro()
       call MPI_Gather(sbuf, 3*grtot,MPI_DOUBLE_PRECISION,
      +                rbuf, 3*grtot,MPI_DOUBLE_PRECISION, 
      +                0,horComm,ierr)
-
+      call cumultime(tm1,gatht)
       
       do i = 1,grtot
          if(topres(2*i-1).gt.0) then
@@ -1224,6 +1250,7 @@ c      stop
       real*8 sbuf(6*omp*omp),buf(6*omp*omp)
       integer sz,i,l,k,src,dst
       common/sizz/sz
+      include 'timempi.par'
       
       if(deb.ge.2) write(37,*) 'in PARA reduce12 '
 c	 call PARAFinal
@@ -1242,9 +1269,10 @@ c	 stop
       enddo
          
       if(deb.ge.2) write(37,*) 'b reduce6 '
+      tm1 = amicro()
       call MPI_Allreduce(sbuf,buf,6*omp*omp,MPI_DOUBLE_PRECISION,
      +                MPI_SUM,MPI_COMM_WORLD,ierr)
-
+      call cumultime(tm1,colt)
       do i = 1,omp
          do l = 1,omp
             do k=1,6
@@ -1388,6 +1416,7 @@ c       if(deb.ge.2) write(37,*) 'end setrng beam'
       real*8 amf
       integer all_jmf(fproc),ierr,i,jmf,jmfm
       integer all_jmf_res(fproc)
+      include 'timempi.par'
 
       write(37,*) 'begin minorPE ',me,amf,jmf
 
@@ -1402,9 +1431,10 @@ c       if(deb.ge.2) write(37,*) 'end setrng beam'
          write(37,1399) amf,me,all_jmf(i)
       enddo
 
-
+      tm1 = amicro()
       call MPI_Allreduce(all_jmf,all_jmf_res,fproc,MPI_INT, 
      +                   MPI_SUM,MPI_COMM_WORLD,ierr)
+      call cumultime(tm1,colt)
 
       do i = 1,fproc
  1398    format('minorPEa ',e12.3,2i5)

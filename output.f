@@ -1250,7 +1250,10 @@ c      call PARAreduce(px)
       real*8 tm(3),pTime,fTime,fullTime,cpTime,cfTime,cfullTime,pi
       ! particle send-receive time, field send-receive time, 
       ! collective communications time FOR CURRENT TIMESTEP
-      real*8 psrt,fsrt,colt
+      real*8 psrt,fsrt,colt,gatht
+      integer lc,rc
+      real*8  rlc,rrc
+      common/ptranstat/lc,rc
       common/mpitime/psrt,fsrt,colt
       common/timeval/tm,pTime,fTime,fullTime,cpTime,cfTime,cfullTime
 
@@ -1259,6 +1262,9 @@ c      call PARAreduce(px)
     
       call  writecpuinfo(me)
       
+      rlc = lc    ! tranforming number of flown-away particles into real
+      rrc = rc
+
       if(nt.eq.0) then
          pTime    = 0d0
 	 fTime    = 0d0
@@ -1268,9 +1274,10 @@ c      call PARAreduce(px)
 	 cfTime    = 0d0
 	 cfullTime = 0d0
             
-         psrt = 0d0
-         fsrt = 0d0
-         colt = 0d0
+         psrt  = 0d0
+         fsrt  = 0d0
+         colt  = 0d0
+	 gatht = 0d0
          
          write(st,'(i5.5)') me
 
@@ -1284,9 +1291,10 @@ c      call PARAreduce(px)
          fTime    = fTime    + cfTime
          fullTime = fullTime + cfullTime
       
-  950    format(i10,6e15.6)
+  950    format(i10,9e15.6)
          if(me.eq.0) then
-            write(93,950) nt,cpTime,cfTime,cfullTime,fsrt,colt,psrt 
+            write(93,950) nt,cpTime,cfTime,cfullTime,fsrt,colt,psrt,
+     +                    gatht,rlc,rrc
          endif
       
          if((nt.eq.totSteps).and.(me.eq.0)) then
